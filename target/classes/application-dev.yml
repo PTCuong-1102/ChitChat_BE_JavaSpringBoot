@@ -1,0 +1,50 @@
+# Development Environment Configuration
+spring:
+  datasource:
+    url: jdbc:postgresql://ep-empty-snowflake-a1mipsm3-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+    username: neondb_owner
+    password: npg_sFid7Gfq8DcS
+    driver-class-name: org.postgresql.Driver
+      
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+        
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+    livereload:
+      enabled: true
+
+logging:
+  level:
+    com.chitchat.backend: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    
+jwt:
+  secret-key: "dev-secret-key-for-development-only-not-for-production"
+  expiration: 3600000  # 1 hour
+  
+cors:
+  allowed-origins: "http://localhost:3000,http://localhost:3001"
+  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+  allowed-headers: "*"
+  allow-credentials: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always

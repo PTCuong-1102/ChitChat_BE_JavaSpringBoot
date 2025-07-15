@@ -1,0 +1,23 @@
+{
+  "groups": [
+    {
+      "name": "jwt",
+      "type": "com.chitchat.backend.config.JwtConfig",
+      "sourceType": "com.chitchat.backend.config.JwtConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "jwt.expiration",
+      "type": "java.lang.Long",
+      "sourceType": "com.chitchat.backend.config.JwtConfig",
+      "defaultValue": 0
+    },
+    {
+      "name": "jwt.secret-key",
+      "type": "java.lang.String",
+      "sourceType": "com.chitchat.backend.config.JwtConfig"
+    }
+  ],
+  "hints": []
+}
