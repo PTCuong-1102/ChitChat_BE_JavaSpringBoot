@@ -95,6 +95,12 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
         
+        <!-- HTTP Client for API calls -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+        
         <!-- API Documentation -->
         <dependency>
             <groupId>org.springdoc</groupId>
