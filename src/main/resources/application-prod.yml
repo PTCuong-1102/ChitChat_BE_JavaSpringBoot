@@ -28,14 +28,39 @@ spring:
         
 logging:
   level:
-    com.chitchat.backend: INFO
-    org.springframework.security: WARN
-    org.hibernate.SQL: WARN
     root: WARN
+    com.chitchat.backend: INFO
+    # Hibernate logging - minimal for production
+    org.hibernate: ERROR
+    org.hibernate.SQL: ERROR
+    org.hibernate.type: ERROR
+    org.hibernate.type.descriptor.sql: ERROR
+    # WebSocket and messaging logging - minimal for production
+    org.springframework.web.socket: WARN
+    org.springframework.messaging: WARN
+    org.springframework.messaging.simp: WARN
+    org.springframework.messaging.handler: WARN
+    # Spring framework logging
+    org.springframework: WARN
+    org.springframework.web: ERROR
+    org.springframework.security: ERROR
+    # Tomcat WebSocket logging
+    org.apache.tomcat.websocket: WARN
+    # Other infrastructure logging
+    reactor.netty: ERROR
+    org.apache.coyote: ERROR
+    org.apache.tomcat: ERROR
+    org.springframework.web.context.request.async: OFF
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
   file:
     name: /app/logs/chitchat-backend.log
   pattern:
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%thread]){faint} %clr(%-40.40logger{36}){cyan} : %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 10
     
 jwt:
   secret-key: ${JWT_SECRET_KEY:your-super-secret-jwt-key}

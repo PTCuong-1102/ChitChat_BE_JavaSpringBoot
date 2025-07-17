@@ -6,8 +6,11 @@ import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -47,13 +50,19 @@ public class Message {
     private Boolean isActive = true;
 
     // Relationships
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id", insertable = false, updatable = false)
     private ChatRoom chatRoom;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", insertable = false, updatable = false)
     private User sender;
+    
+    @JsonIgnore
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<MessageAttachment> attachments = new ArrayList<>();
 
     // Constructors
     public Message() {}
@@ -144,6 +153,14 @@ public class Message {
 
     public void setSender(User sender) {
         this.sender = sender;
+    }
+    
+    public List<MessageAttachment> getAttachments() {
+        return attachments;
+    }
+    
+    public void setAttachments(List<MessageAttachment> attachments) {
+        this.attachments = attachments;
     }
 
     // Equals and HashCode

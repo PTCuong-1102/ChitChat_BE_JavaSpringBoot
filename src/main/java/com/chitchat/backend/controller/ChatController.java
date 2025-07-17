@@ -3,6 +3,7 @@ package com.chitchat.backend.controller;
 import com.chitchat.backend.dto.*;
 import com.chitchat.backend.security.UserPrincipal;
 import com.chitchat.backend.service.ChatService;
+import com.chitchat.backend.util.SecurityUtils;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,8 +27,8 @@ public class ChatController {
      */
     @GetMapping("/rooms")
     public ResponseEntity<List<ChatRoomResponse>> getUserRooms(Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        List<ChatRoomResponse> rooms = chatService.getUserRooms(userPrincipal.getId());
+        UUID userId = SecurityUtils.getUserId(authentication);
+        List<ChatRoomResponse> rooms = chatService.getUserRooms(userId);
         return ResponseEntity.ok(rooms);
     }
 
@@ -37,8 +38,8 @@ public class ChatController {
     @PostMapping("/rooms")
     public ResponseEntity<ChatRoomResponse> createRoom(@Valid @RequestBody CreateRoomRequest createRoomRequest,
                                                       Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        ChatRoomResponse chatRoomResponse = chatService.createRoom(createRoomRequest, userPrincipal.getId());
+        UUID userId = SecurityUtils.getUserId(authentication);
+        ChatRoomResponse chatRoomResponse = chatService.createRoom(createRoomRequest, userId);
         return ResponseEntity.ok(chatRoomResponse);
     }
 
@@ -49,8 +50,8 @@ public class ChatController {
     public ResponseEntity<MessageResponse> sendMessage(@PathVariable UUID roomId,
                                                         @Valid @RequestBody SendMessageRequest sendMessageRequest,
                                                         Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        MessageResponse messageResponse = chatService.sendMessage(sendMessageRequest, roomId, userPrincipal.getId());
+        UUID userId = SecurityUtils.getUserId(authentication);
+        MessageResponse messageResponse = chatService.sendMessage(sendMessageRequest, roomId, userId);
         return ResponseEntity.ok(messageResponse);
     }
 
@@ -62,8 +63,8 @@ public class ChatController {
                                                                  @RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "20") int size,
                                                                  Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        Page<MessageResponse> messages = chatService.getRoomMessages(roomId, userPrincipal.getId(), page, size);
+        UUID userId = SecurityUtils.getUserId(authentication);
+        Page<MessageResponse> messages = chatService.getRoomMessages(roomId, userId, page, size);
         return ResponseEntity.ok(messages);
     }
 
@@ -73,8 +74,8 @@ public class ChatController {
     @GetMapping("/rooms/{roomId}")
     public ResponseEntity<ChatRoomResponse> getRoomDetails(@PathVariable UUID roomId,
                                                            Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        ChatRoomResponse roomDetails = chatService.getRoomDetails(roomId, userPrincipal.getId());
+        UUID userId = SecurityUtils.getUserId(authentication);
+        ChatRoomResponse roomDetails = chatService.getRoomDetails(roomId, userId);
         return ResponseEntity.ok(roomDetails);
     }
 
@@ -85,8 +86,8 @@ public class ChatController {
     public ResponseEntity<Void> addParticipant(@PathVariable UUID roomId,
                                                 @RequestParam UUID participantId,
                                                 Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        chatService.addParticipant(roomId, userPrincipal.getId(), participantId);
+        UUID userId = SecurityUtils.getUserId(authentication);
+        chatService.addParticipant(roomId, userId, participantId);
         return ResponseEntity.ok().build();
     }
 
@@ -97,8 +98,70 @@ public class ChatController {
     public ResponseEntity<Void> removeParticipant(@PathVariable UUID roomId,
                                                    @PathVariable UUID participantId,
                                                    Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        chatService.removeParticipant(roomId, userPrincipal.getId(), participantId);
+        UUID userId = SecurityUtils.getUserId(authentication);
+        chatService.removeParticipant(roomId, userId, participantId);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Edit message
+     */
+    @PutMapping("/messages/{messageId}")
+    public ResponseEntity<MessageResponse> editMessage(@PathVariable UUID messageId,
+                                                      @Valid @RequestBody SendMessageRequest editRequest,
+                                                      Authentication authentication) {
+        UUID userId = SecurityUtils.getUserId(authentication);
+        MessageResponse editedMessage = chatService.editMessage(messageId, editRequest, userId);
+        return ResponseEntity.ok(editedMessage);
+    }
+
+    /**
+     * Delete message
+     */
+    @DeleteMapping("/messages/{messageId}")
+    public ResponseEntity<Void> deleteMessage(@PathVariable UUID messageId,
+                                              Authentication authentication) {
+        UUID userId = SecurityUtils.getUserId(authentication);
+        chatService.deleteMessage(messageId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Search messages in a specific room
+     */
+    @GetMapping("/rooms/{roomId}/messages/search")
+    public ResponseEntity<Page<MessageResponse>> searchMessagesInRoom(@PathVariable UUID roomId,
+                                                                     @RequestParam String query,
+                                                                     @RequestParam(defaultValue = "0") int page,
+                                                                     @RequestParam(defaultValue = "20") int size,
+                                                                     Authentication authentication) {
+        UUID userId = SecurityUtils.getUserId(authentication);
+        Page<MessageResponse> searchResults = chatService.searchMessagesInRoom(roomId, query, userId, page, size);
+        return ResponseEntity.ok(searchResults);
+    }
+
+    /**
+     * Search messages across all user's rooms
+     */
+    @GetMapping("/messages/search")
+    public ResponseEntity<Page<MessageResponse>> searchMessagesGlobal(@RequestParam String query,
+                                                                     @RequestParam(defaultValue = "0") int page,
+                                                                     @RequestParam(defaultValue = "20") int size,
+                                                                     Authentication authentication) {
+        UUID userId = SecurityUtils.getUserId(authentication);
+        Page<MessageResponse> searchResults = chatService.searchMessagesAcrossUserRooms(userId, query, page, size);
+        return ResponseEntity.ok(searchResults);
+    }
+
+    /**
+     * Find or create direct message room with another user
+     */
+    @PostMapping("/rooms/dm/{friendId}")
+    public ResponseEntity<ChatRoomResponse> findOrCreateDirectMessageRoom(
+            @PathVariable UUID friendId,
+            Authentication authentication) {
+        UUID userId = SecurityUtils.getUserId(authentication);
+        ChatRoomResponse dmRoom = chatService.findOrCreateDirectMessageRoom(userId, friendId);
+        return ResponseEntity.ok(dmRoom);
     }
 }

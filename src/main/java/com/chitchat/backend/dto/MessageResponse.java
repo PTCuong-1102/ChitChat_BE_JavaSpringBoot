@@ -17,6 +17,7 @@ public class MessageResponse {
     private LocalDateTime editedAt;
     private UserResponse sender;
     private Boolean isEdited;
+    private String roomName;
     
     // Constructors
     public MessageResponse() {}
@@ -108,5 +109,13 @@ public class MessageResponse {
     
     public void setIsEdited(Boolean isEdited) {
         this.isEdited = isEdited;
+    }
+    
+    public String getRoomName() {
+        return roomName;
+    }
+    
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
     }
 }

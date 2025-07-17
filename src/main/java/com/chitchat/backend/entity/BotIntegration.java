@@ -29,6 +29,9 @@ public class BotIntegration {
     @Column(name = "api_secret")
     private String apiSecret;
     
+    @Column(name = "model")
+    private String model;
+    
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -49,6 +52,14 @@ public class BotIntegration {
         this.integrationType = integrationType;
         this.apiKey = apiKey;
         this.apiSecret = apiSecret;
+    }
+    
+    public BotIntegration(UUID botId, String integrationType, String apiKey, String apiSecret, String model) {
+        this.botId = botId;
+        this.integrationType = integrationType;
+        this.apiKey = apiKey;
+        this.apiSecret = apiSecret;
+        this.model = model;
     }
     
     // Getters and Setters
@@ -90,6 +101,14 @@ public class BotIntegration {
     
     public void setApiSecret(String apiSecret) {
         this.apiSecret = apiSecret;
+    }
+    
+    public String getModel() {
+        return model;
+    }
+    
+    public void setModel(String model) {
+        this.model = model;
     }
     
     public LocalDateTime getCreatedAt() {

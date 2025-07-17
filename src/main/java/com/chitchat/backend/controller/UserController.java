@@ -3,6 +3,7 @@ package com.chitchat.backend.controller;
 import com.chitchat.backend.dto.UserResponse;
 import com.chitchat.backend.security.UserPrincipal;
 import com.chitchat.backend.service.UserService;
+import com.chitchat.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -26,8 +27,8 @@ public class UserController {
     @GetMapping("/search")
     public ResponseEntity<List<UserResponse>> searchUsers(@RequestParam("q") String query,
                                                          Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        List<UserResponse> users = userService.searchUsers(query, userPrincipal.getId());
+        UUID userId = SecurityUtils.getUserId(authentication);
+        List<UserResponse> users = userService.searchUsers(query, userId);
         return ResponseEntity.ok(users);
     }
 
@@ -37,8 +38,8 @@ public class UserController {
     @GetMapping("/find")
     public ResponseEntity<Map<String, Object>> findUser(@RequestParam("q") String query,
                                                        Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        Map<String, Object> result = userService.findUser(query, userPrincipal.getId());
+        UUID userId = SecurityUtils.getUserId(authentication);
+        Map<String, Object> result = userService.findUser(query, userId);
         
         if (result == null) {
             return ResponseEntity.notFound().build();
