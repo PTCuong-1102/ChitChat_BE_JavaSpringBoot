@@ -30,8 +30,7 @@
     {
       "name": "jwt.expiration",
       "type": "java.lang.Long",
-      "sourceType": "com.chitchat.backend.config.JwtConfig",
-      "defaultValue": 0
+      "sourceType": "com.chitchat.backend.config.JwtConfig"
     },
     {
       "name": "jwt.secret-key",
