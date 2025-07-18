@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 @Service
-public class GeminiService {
+public class GeminiService implements AIService {
     
     private static final Logger logger = LoggerFactory.getLogger(GeminiService.class);
     
@@ -145,5 +145,77 @@ public class GeminiService {
                     logger.error("Gemini API connection test failed: {}", throwable.getMessage());
                     return false;
                 });
+    }
+    
+    // AIService interface implementation
+    
+    @Override
+    public CompletableFuture<String> generateResponse(String prompt, String model, String apiKey) {
+        logger.debug("Generating response for prompt: {} with model: {}", prompt, model);
+        
+        try {
+            // Create request
+            GeminiRequest.Part part = new GeminiRequest.Part(prompt);
+            GeminiRequest.Content content = new GeminiRequest.Content(Arrays.asList(part));
+            GeminiRequest request = new GeminiRequest(Arrays.asList(content));
+            
+            // Make API call with provided apiKey and model
+            String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
+            
+            Mono<GeminiResponse> responseMono = webClient
+                    .post()
+                    .uri(apiUrl + "?key=" + apiKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(GeminiResponse.class);
+            
+            // Convert to CompletableFuture
+            return responseMono
+                    .map(this::extractTextFromResponse)
+                    .doOnSuccess(response -> logger.debug("Successfully generated response: {}", response))
+                    .doOnError(error -> logger.error("Error generating response: {}", error.getMessage(), error))
+                    .toFuture();
+                    
+        } catch (Exception e) {
+            logger.error("Error creating Gemini request: {}", e.getMessage(), e);
+            CompletableFuture<String> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+    
+    @Override
+    public CompletableFuture<String> generateChatResponse(String userMessage, String conversationContext, String model, String apiKey) {
+        String prompt = buildChatPrompt(userMessage, conversationContext);
+        return generateResponse(prompt, model, apiKey);
+    }
+    
+    @Override
+    public CompletableFuture<Boolean> testConnection(String apiKey, String model) {
+        logger.info("Testing Gemini API connection with provided apiKey and model: {}", model);
+        
+        String testModel = (model != null && !model.isEmpty()) ? model : "gemini-1.5-flash";
+        
+        return generateResponse("Hello, this is a test message.", testModel, apiKey)
+                .thenApply(response -> {
+                    boolean isWorking = response != null && !response.contains("unable to generate");
+                    logger.info("Gemini API connection test: {}", isWorking ? "SUCCESS" : "FAILED");
+                    return isWorking;
+                })
+                .exceptionally(throwable -> {
+                    logger.error("Gemini API connection test failed: {}", throwable.getMessage());
+                    return false;
+                });
+    }
+    
+    @Override
+    public String getProviderName() {
+        return "gemini";
+    }
+    
+    @Override
+    public String[] getSupportedModels() {
+        return new String[]{"gemini-1.5-flash", "gemini-1.5-pro"};
     }
 }

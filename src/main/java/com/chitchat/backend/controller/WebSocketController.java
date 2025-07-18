@@ -5,6 +5,7 @@ import com.chitchat.backend.dto.SendMessageRequest;
 import com.chitchat.backend.entity.MessageType;
 import com.chitchat.backend.security.UserPrincipal;
 import com.chitchat.backend.service.ChatService;
+import com.chitchat.backend.util.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class WebSocketController {
                            SimpMessageHeaderAccessor headerAccessor,
                            Authentication authentication) {
         try {
-            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            UUID userId = SecurityUtils.getUserId(authentication);
             
             // Create SendMessageRequest without roomId
             SendMessageRequest messageRequest = new SendMessageRequest();
@@ -44,7 +45,7 @@ public class WebSocketController {
             messageRequest.setMessageType(sendMessageRequest.getMessageType());
             
             // Send message through service
-            MessageResponse messageResponse = chatService.sendMessage(messageRequest, sendMessageRequest.getRoomId(), userPrincipal.getId());
+            MessageResponse messageResponse = chatService.sendMessage(messageRequest, sendMessageRequest.getRoomId(), userId);
             
             // Broadcast message to room subscribers
             messagingTemplate.convertAndSend("/topic/room/" + sendMessageRequest.getRoomId(), messageResponse);
@@ -53,8 +54,9 @@ public class WebSocketController {
         } catch (Exception e) {
             logger.error("Error sending message via WebSocket", e);
             // Send error message back to user
+            String username = authentication != null ? authentication.getName() : "anonymous";
             messagingTemplate.convertAndSendToUser(
-                authentication.getName(),
+                username,
                 "/queue/errors",
                 "Failed to send message: " + e.getMessage()
             );
@@ -69,7 +71,7 @@ public class WebSocketController {
                         SimpMessageHeaderAccessor headerAccessor,
                         Authentication authentication) {
         try {
-            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal(authentication);
             
             // Add user to session
             headerAccessor.getSessionAttributes().put("username", userPrincipal.getUsername());
@@ -99,7 +101,7 @@ public class WebSocketController {
                          SimpMessageHeaderAccessor headerAccessor,
                          Authentication authentication) {
         try {
-            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal(authentication);
             
             // Notify room about user leaving
             RoomEventMessage roomEvent = new RoomEventMessage();
@@ -124,7 +126,7 @@ public class WebSocketController {
     public void handleTyping(@Payload TypingMessage typingMessage,
                             Authentication authentication) {
         try {
-            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal(authentication);
             
             typingMessage.setUserId(userPrincipal.getId());
             typingMessage.setUsername(userPrincipal.getUsername());

@@ -1,16 +1,25 @@
 package com.chitchat.backend.dto;
 
 import com.chitchat.backend.entity.User;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.UUID;
 
 public class UserResponse {
     
     private UUID id;
+    
+    @JsonProperty("full_name")
     private String fullName;
+    
+    @JsonProperty("user_name")
     private String username;
+    
     private String email;
+    
+    @JsonProperty("avatar_url")
     private String avatarUrl;
+    
     private Boolean status;
     
     // Constructors
